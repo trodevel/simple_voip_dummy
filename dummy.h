@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9381 $ $Date:: 2018-06-15 #$ $Author: serge $
+// $Revision: 9386 $ $Date:: 2018-06-18 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__DUMMY_H
 #define SIMPLE_VOIP_DUMMY__DUMMY_H
@@ -30,6 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "simple_voip/i_simple_voip.h"              // ISimpleVoip
 #include "simple_voip/i_simple_voip_callback.h"     // ISimpleVoipCallback
 #include "workt/worker_t.h"                         // WorkerT
+#include "scheduler/i_scheduler.h"                  // IScheduler
 
 #include "config.h"                                 // Config
 #include "call.h"                                   // Call
@@ -38,7 +39,7 @@ namespace simple_voip_dummy {
 
 class Dummy;
 
-typedef workt::WorkerT< const simple_voip::ForwardObject *, Dummy> WorkerBase;
+typedef workt::WorkerT< const simple_voip::IObject *, Dummy> WorkerBase;
 
 class Dummy:
         public WorkerBase,
@@ -51,9 +52,12 @@ public:
     bool init(
             const Config                        & config,
             simple_voip::ISimpleVoipCallback    * callback,
+            scheduler::IScheduler               * scheduler,
             std::string                         & error_msg );
 
     virtual void consume( const simple_voip::ForwardObject * req );
+
+    void consume( const simple_voip::CallbackObject * o );
 
     void start();
 
@@ -66,7 +70,9 @@ private:
 private:
 
     // WorkerT interface
+    void handle( const simple_voip::IObject * req );
     void handle( const simple_voip::ForwardObject * req );
+    void handle( const simple_voip::CallbackObject * req );
 
     void handle_InitiateCallRequest( const simple_voip::ForwardObject * req );
     void handle_DropRequest( const simple_voip::ForwardObject * req );
@@ -102,6 +108,8 @@ private:
     Config                              config_;
 
     simple_voip::ISimpleVoipCallback    * callback_;
+
+    scheduler::IScheduler               * scheduler_;
 
     MapIdToCall                         map_id_to_call_;
 };

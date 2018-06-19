@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9371 $ $Date:: 2018-06-15 #$ $Author: serge $
+// $Revision: 9383 $ $Date:: 2018-06-18 #$ $Author: serge $
 
 #include <iostream>         // cout
 #include <typeinfo>
@@ -32,6 +32,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "dummy.h"              // simple_voip_dummy::Dummy
 #include "objects.h"            //
 #include "config.h"             // Config
+
+#include "scheduler/scheduler.h"    // Scheduler
+
 
 class Callback: virtual public simple_voip::ISimpleVoipCallback
 {
@@ -318,6 +321,10 @@ int main()
         return 0;
     }
 
+    scheduler::Scheduler sched( scheduler::Duration( std::chrono::milliseconds( 1 ) ) );
+
+    sched.run();
+
     std::vector< std::thread > tg;
 
     tg.push_back( std::thread( std::bind( &Callback::control_thread, &test ) ) );
@@ -326,6 +333,8 @@ int main()
         t.join();
 
     dummy.shutdown();
+
+    sched.shutdown();
 
     std::cout << "Done! =)" << std::endl;
 

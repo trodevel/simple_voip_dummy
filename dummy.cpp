@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9381 $ $Date:: 2018-06-15 #$ $Author: serge $
+// $Revision: 9386 $ $Date:: 2018-06-18 #$ $Author: serge $
 
 #include "dummy.h"                  // self
 
@@ -33,7 +33,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace simple_voip_dummy {
 
 Dummy::Dummy():
-        callback_( nullptr )
+        callback_( nullptr ),
+        scheduler_( scheduler )
 {
 }
 
@@ -44,16 +45,23 @@ Dummy::~Dummy()
 bool Dummy::init(
         const Config                        & config,
         simple_voip::ISimpleVoipCallback    * callback,
+        scheduler::IScheduler               * scheduler,
         std::string                         & error_msg )
 {
     error_msg   = "simple_voip_dummy";
 
     callback_   = callback;
+    scheduler_  = scheduler;
 
     return true;
 }
 
 void Dummy::consume( const simple_voip::ForwardObject * req )
+{
+    WorkerBase::consume( req );
+}
+
+void Dummy::consume( const simple_voip::CallbackObject * req )
 {
     WorkerBase::consume( req );
 }
@@ -69,6 +77,21 @@ void Dummy::shutdown()
 }
 
 // WorkerT interface
+
+void Dummy::handle( const simple_voip::IObject * req )
+{
+    if( dynamic_cast< const simple_voip::ForwardObject *>( req ) != nullptr )
+    {
+        handle( dynamic_cast< const simple_voip::ForwardObject *>( req ) );
+    }
+    else if( dynamic_cast< const simple_voip::CallbackObject *>( req ) != nullptr )
+    {
+        handle( dynamic_cast< const simple_voip::CallbackObject *>( req ) );
+    }
+
+    delete req;
+}
+
 void Dummy::handle( const simple_voip::ForwardObject * req )
 {
     typedef Dummy Type;
@@ -95,8 +118,10 @@ void Dummy::handle( const simple_voip::ForwardObject * req )
     {
         (this->*it->second)( req );
     }
+}
 
-    delete req;
+void Dummy::handle( const simple_voip::CallbackObject * req )
+{
 }
 
 void Dummy::handle_InitiateCallRequest( const simple_voip::ForwardObject * rreq )

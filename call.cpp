@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9379 $ $Date:: 2018-06-15 #$ $Author: serge $
+// $Revision: 9384 $ $Date:: 2018-06-18 #$ $Author: serge $
 
 #include "call.h"                   // self
 
@@ -29,9 +29,9 @@ namespace simple_voip_dummy {
 
 Call::Call(
         const Config                        & config,
-        simple_voip::ISimpleVoipCallback    * callback ):
+        Dummy                               * parent ):
                 config_( config ),
-                callback_( callback )
+                parent_( parent )
 {
 }
 

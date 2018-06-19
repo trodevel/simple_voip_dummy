@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9380 $ $Date:: 2018-06-15 #$ $Author: serge $
+// $Revision: 9384 $ $Date:: 2018-06-18 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CALL_H
 #define SIMPLE_VOIP_DUMMY__CALL_H
@@ -34,14 +34,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace simple_voip_dummy {
 
-class Call;
+class Dummy;
 
 class Call
 {
 public:
     Call(
             const Config                        & config,
-            simple_voip::ISimpleVoipCallback    * callback );
+            Dummy                               * parent );
     ~Call();
 
     void handle( const simple_voip::InitiateCallRequest & req );
@@ -60,7 +60,7 @@ private:
 
     Config                              config_;
 
-    simple_voip::ISimpleVoipCallback    * callback_;
+    Dummy                               * parent_;
 };
 
 } // namespace simple_voip_dummy
