@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9383 $ $Date:: 2018-06-18 #$ $Author: serge $
+// $Revision: 9400 $ $Date:: 2018-06-19 #$ $Author: serge $
 
 #include <iostream>         // cout
 #include <typeinfo>
@@ -33,6 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "objects.h"            //
 #include "config.h"             // Config
 
+#include "utils/dummy_logger.h"     // dummy_log_set_log_level
 #include "scheduler/scheduler.h"    // Scheduler
 
 
@@ -299,7 +300,7 @@ void load( const char * filename, simple_voip_dummy::Config & cfg )
     std::string l;
 
     getline( file, l );
-    cfg.icr_error_response_probability    = stoi( l );
+    cfg.icr_reject_response_probability    = stoi( l );
 }
 
 int main()
@@ -314,14 +315,18 @@ int main()
 
     std::string error_msg;
 
-    bool b = dummy.init( config, & test, error_msg );
+    scheduler::Scheduler sched( scheduler::Duration( std::chrono::milliseconds( 1 ) ) );
+
+    auto log_id_dummy            = dummy_logger::register_module( "SimpleVoipDummy" );
+
+    dummy_logger::set_log_level( log_id_dummy,      log_levels_log4j::TRACE );
+
+    bool b = dummy.init( log_id_dummy, config, & test, & sched, & error_msg );
     if( b == false )
     {
         std::cout << "cannot initialize voip module: " << error_msg << std::endl;
         return 0;
     }
-
-    scheduler::Scheduler sched( scheduler::Duration( std::chrono::milliseconds( 1 ) ) );
 
     sched.run();
 

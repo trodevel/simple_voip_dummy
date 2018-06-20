@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9369 $ $Date:: 2018-06-15 #$ $Author: serge $
+// $Revision: 9389 $ $Date:: 2018-06-19 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CONFIG_H
 #define SIMPLE_VOIP_DUMMY__CONFIG_H
@@ -29,7 +29,6 @@ namespace simple_voip_dummy {
 struct Config
 {
     unsigned icr_ok_response_probability;       // InitiateCallRequest - InitiateCallResponse probability
-    unsigned icr_error_response_probability;    // InitiateCallRequest
     unsigned icr_reject_response_probability;   // InitiateCallRequest
     unsigned connected_probability;             // Connected Probability
     unsigned dialing_duration_min;              //

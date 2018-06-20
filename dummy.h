@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9386 $ $Date:: 2018-06-18 #$ $Author: serge $
+// $Revision: 9408 $ $Date:: 2018-06-19 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__DUMMY_H
 #define SIMPLE_VOIP_DUMMY__DUMMY_H
@@ -50,10 +50,11 @@ public:
     ~Dummy();
 
     bool init(
+            unsigned int                        log_id,
             const Config                        & config,
             simple_voip::ISimpleVoipCallback    * callback,
             scheduler::IScheduler               * scheduler,
-            std::string                         & error_msg );
+            std::string                         * error_msg );
 
     virtual void consume( const simple_voip::ForwardObject * req );
 
@@ -81,11 +82,18 @@ private:
     void handle_RecordFileRequest( const simple_voip::ForwardObject * req );
     void handle_RecordFileStopRequest( const simple_voip::ForwardObject * req );
 
+    void handle_Dialing( const simple_voip::CallbackObject * req );
+    void handle_Ringing( const simple_voip::CallbackObject * req );
+    void handle_Connected( const simple_voip::CallbackObject * req );
+    void handle_ConnectionLost( const simple_voip::CallbackObject * req );
+    void handle_DtmfTone( const simple_voip::CallbackObject * req );
+
     void check_call_end( MapIdToCall::iterator it );
     void send_error_response( uint32_t req_id, const std::string & error_message );
+    void send_reject_response( uint32_t req_id, const std::string & error_message );
 
     template <class T>
-    void forward_to_call( const T & req )
+    void forward_req_to_call( const T & req )
     {
         auto call_id = req.call_id;
 
@@ -103,7 +111,12 @@ private:
         }
     }
 
+    template <class T>
+    void forward_resp_to_call( const T & req );
+
 private:
+
+    unsigned int                        log_id_;
 
     Config                              config_;
 
@@ -112,6 +125,8 @@ private:
     scheduler::IScheduler               * scheduler_;
 
     MapIdToCall                         map_id_to_call_;
+
+    unsigned                            last_call_id_;
 };
 
 } // namespace simple_voip_dummy

@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9384 $ $Date:: 2018-06-18 #$ $Author: serge $
+// $Revision: 9410 $ $Date:: 2018-06-19 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CALL_H
 #define SIMPLE_VOIP_DUMMY__CALL_H
@@ -29,6 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "simple_voip/i_simple_voip.h"              // ISimpleVoip
 #include "simple_voip/i_simple_voip_callback.h"     // ISimpleVoipCallback
 #include "simple_voip/objects.h"                    // InitiateCallRequest
+#include "scheduler/i_scheduler.h"                  // IScheduler
 
 #include "config.h"                                 // Config
 
@@ -38,10 +39,23 @@ class Dummy;
 
 class Call
 {
+    enum class state_e
+    {
+        IDLE,
+        DIALING,
+        RINGING,
+        CONNECTED,
+        CLOSED
+    };
+
 public:
     Call(
+            uint32_t                            id,
+            unsigned int                        log_id,
             const Config                        & config,
-            Dummy                               * parent );
+            Dummy                               * parent,
+            simple_voip::ISimpleVoipCallback    * callback,
+            scheduler::IScheduler               * scheduler );
     ~Call();
 
     void handle( const simple_voip::InitiateCallRequest & req );
@@ -55,12 +69,24 @@ public:
 
 private:
 
+    const std::string & to_string( const state_e & l );
+
+    void next_state( state_e state );
+
 
 private:
+
+    uint32_t                            id_;
+
+    unsigned int                        log_id_;
+
+    state_e                             state_;
 
     Config                              config_;
 
     Dummy                               * parent_;
+    simple_voip::ISimpleVoipCallback    * callback_;
+    scheduler::IScheduler               * scheduler_;
 };
 
 } // namespace simple_voip_dummy
