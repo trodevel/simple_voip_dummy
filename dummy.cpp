@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9408 $ $Date:: 2018-06-19 #$ $Author: serge $
+// $Revision: 9413 $ $Date:: 2018-06-20 #$ $Author: serge $
 
 #include "dummy.h"                  // self
 
@@ -32,7 +32,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "simple_voip/object_factory.h"     // create_error_response
 #include "utils/dummy_logger.h"             // dummy_log
 
-#include "random.h"
+#include "random.h"                         // get_true
 
 namespace simple_voip_dummy {
 

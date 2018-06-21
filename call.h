@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9410 $ $Date:: 2018-06-19 #$ $Author: serge $
+// $Revision: 9415 $ $Date:: 2018-06-20 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CALL_H
 #define SIMPLE_VOIP_DUMMY__CALL_H
@@ -50,7 +50,7 @@ class Call
 
 public:
     Call(
-            uint32_t                            id,
+            uint32_t                            call_id,
             unsigned int                        log_id,
             const Config                        & config,
             Dummy                               * parent,
@@ -73,10 +73,13 @@ private:
 
     void next_state( state_e state );
 
+    void schedule_event( simple_voip::CallbackObject * ev, uint32_t exec_time );
+
+    uint32_t calc_exec_time( uint32_t min, uint32_t max );
 
 private:
 
-    uint32_t                            id_;
+    uint32_t                            call_id_;
 
     unsigned int                        log_id_;
 
