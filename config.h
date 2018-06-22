@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9416 $ $Date:: 2018-06-20 #$ $Author: serge $
+// $Revision: 9428 $ $Date:: 2018-06-21 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CONFIG_H
 #define SIMPLE_VOIP_DUMMY__CONFIG_H
@@ -30,9 +30,24 @@ struct Config
 {
     unsigned icr_ok_response_probability;       // InitiateCallRequest - InitiateCallResponse probability
     unsigned icr_reject_response_probability;   // InitiateCallRequest
-    unsigned drop_ok_response_probability;          // DropRequest - InitiateCallResponse probability
+    unsigned drop_ok_response_probability;          // DropRequest - DropResponse probability
     unsigned drop_err_not_rej_response_probability; // DropRequest - ErrorResponse / Not RejectResponse probability
+
+    unsigned pf_ok_response_probability;            // PlayFileRequest - PlayFileResponse probability
+    unsigned pf_err_not_rej_response_probability;   // PlayFileRequest - ErrorResponse / Not RejectResponse probability
+
+    unsigned pfs_ok_response_probability;           // PlayFileStopRequest - PlayFileStopResponse probability
+    unsigned pfs_err_not_rej_response_probability;  // PlayFileStopRequest - ErrorResponse / Not RejectResponse probability
+
+    unsigned rf_ok_response_probability;            // RecordFileRequest - RecordFileResponse probability
+    unsigned rf_err_not_rej_response_probability;   // RecordFileRequest - ErrorResponse / Not RejectResponse probability
+
+    unsigned rfs_ok_response_probability;           // RecordFileStopRequest - RecordFileStopResponse probability
+    unsigned rfs_err_not_rej_response_probability;  // RecordFileStopRequest - ErrorResponse / Not RejectResponse probability
+
     unsigned connected_probability;             // Connected Probability
+    unsigned waiting_dialing_duration_min;      //
+    unsigned waiting_dialing_duration_max;      //
     unsigned dialing_duration_min;              //
     unsigned dialing_duration_max;              //
     unsigned ringing_duration_min;              //

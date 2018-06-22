@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9413 $ $Date:: 2018-06-20 #$ $Author: serge $
+// $Revision: 9442 $ $Date:: 2018-06-21 #$ $Author: serge $
 
 #include "dummy.h"                  // self
 
@@ -95,13 +95,15 @@ void Dummy::handle( const simple_voip::IObject * req )
     if( dynamic_cast< const simple_voip::ForwardObject *>( req ) != nullptr )
     {
         handle( dynamic_cast< const simple_voip::ForwardObject *>( req ) );
+
+        delete req;
     }
     else if( dynamic_cast< const simple_voip::CallbackObject *>( req ) != nullptr )
     {
         handle( dynamic_cast< const simple_voip::CallbackObject *>( req ) );
-    }
 
-    delete req;
+        // callback objects will be consumed by the consumer
+    }
 }
 
 void Dummy::handle( const simple_voip::ForwardObject * req )
@@ -169,7 +171,7 @@ void Dummy::handle_InitiateCallRequest( const simple_voip::ForwardObject * rreq 
     {
         last_call_id_++;
 
-        auto call = new Call( last_call_id_, log_id_, config_, this );
+        auto call = new Call( last_call_id_, log_id_, config_, this, callback_, scheduler_ );
 
         dummy_log_info( log_id_, "new call %u %s", last_call_id_, r.party.c_str() );
 

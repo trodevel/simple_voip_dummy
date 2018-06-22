@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9415 $ $Date:: 2018-06-20 #$ $Author: serge $
+// $Revision: 9431 $ $Date:: 2018-06-21 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CALL_H
 #define SIMPLE_VOIP_DUMMY__CALL_H
@@ -42,10 +42,17 @@ class Call
     enum class state_e
     {
         IDLE,
+        WAITING_DIALING,
         DIALING,
         RINGING,
         CONNECTED,
         CLOSED
+    };
+
+    enum class media_state_e
+    {
+        IDLE,
+        BUSY
     };
 
 public:
@@ -65,17 +72,29 @@ public:
     void handle( const simple_voip::RecordFileRequest & req );
     void handle( const simple_voip::RecordFileStopRequest & req );
 
+    void handle( const simple_voip::Dialing & req );
+    void handle( const simple_voip::Ringing & req );
+    void handle( const simple_voip::Failed & req );
+    void handle( const simple_voip::Connected & req );
+    void handle( const simple_voip::ConnectionLost & req );
+    void handle( const simple_voip::DtmfTone & req );
+
     bool is_ended() const;
 
 private:
 
     const std::string & to_string( const state_e & l );
+    const std::string & to_string( const media_state_e & l );
 
     void next_state( state_e state );
+    void player_next_state( media_state_e state );
+    void recorder_next_state( media_state_e state );
 
     void schedule_event( simple_voip::CallbackObject * ev, uint32_t exec_time );
 
     uint32_t calc_exec_time( uint32_t min, uint32_t max );
+
+    bool execute_req_or_reject( uint32_t req_id, uint32_t ok_prob, uint32_t err_not_rej_prob, const std::string & comment );
 
 private:
 
@@ -84,6 +103,8 @@ private:
     unsigned int                        log_id_;
 
     state_e                             state_;
+    media_state_e                       player_state_;
+    media_state_e                       recorder_state_;
 
     Config                              config_;
 

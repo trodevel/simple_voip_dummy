@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9408 $ $Date:: 2018-06-19 #$ $Author: serge $
+// $Revision: 9418 $ $Date:: 2018-06-21 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__DUMMY_H
 #define SIMPLE_VOIP_DUMMY__DUMMY_H
@@ -64,6 +64,9 @@ public:
 
     void shutdown();
 
+    void send_error_response( uint32_t req_id, const std::string & error_message );
+    void send_reject_response( uint32_t req_id, const std::string & error_message );
+
 private:
 
     typedef std::map<uint32_t,Call*>    MapIdToCall;
@@ -89,8 +92,6 @@ private:
     void handle_DtmfTone( const simple_voip::CallbackObject * req );
 
     void check_call_end( MapIdToCall::iterator it );
-    void send_error_response( uint32_t req_id, const std::string & error_message );
-    void send_reject_response( uint32_t req_id, const std::string & error_message );
 
     template <class T>
     void forward_req_to_call( const T & req )
