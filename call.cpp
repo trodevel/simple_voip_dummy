@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9443 $ $Date:: 2018-06-21 #$ $Author: serge $
+// $Revision: 9468 $ $Date:: 2018-06-25 #$ $Author: serge $
 
 #include "call.h"                   // self
 
@@ -31,16 +31,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "scheduler/onetime_job_aux.h"      // create_and_insert_one_time_job
 
 #include "random.h"                         // get_random
+#include "dummy.h"                          // Dummy
 
 namespace simple_voip_dummy {
 
 uint32_t epoch_now()
 {
-    auto tm_now = std::chrono::system_clock::now();
-
-    auto tm_epoch = std::chrono::duration_cast<std::chrono::hours>( tm_now.time_since_epoch() ).count();
-
-    return tm_epoch;
+    // https://stackoverflow.com/a/40899786
+    auto st = std::time(nullptr);
+    auto secs = static_cast<std::chrono::seconds>( st ).count();
+    return static_cast<uint32_t>( secs );
 }
 
 
@@ -209,9 +209,9 @@ void Call::handle( const simple_voip::Ringing & req )
 
     auto has_to_exec = get_true( config_.connected_probability );
 
-    simple_voip::CallbackObject * ev = ( has_to_exec )?
-            simple_voip::create_message_t<simple_voip::Connected>( call_id_ ):
-            simple_voip::create_message_t<simple_voip::Failed>( call_id_ );
+    auto ev = ( has_to_exec )?
+            (simple_voip::CallbackObject *)simple_voip::create_message_t<simple_voip::Connected>( call_id_ ):
+            (simple_voip::CallbackObject *)simple_voip::create_message_t<simple_voip::Failed>( call_id_ );
 
     auto exec_time = calc_exec_time( config_.ringing_duration_min, config_.ringing_duration_max );
 
@@ -243,6 +243,14 @@ void Call::handle( const simple_voip::Connected & req )
 
     callback_->consume( & req );
 
+    auto ev = simple_voip::create_message_t<simple_voip::ConnectionLost>( call_id_ );
+
+    auto exec_time = calc_exec_time( config_.call_duration_min, config_.call_duration_max );
+
+    schedule_event( ev, exec_time );
+
+    schedule_dtmf_tone();
+
     next_state( state_e::CONNECTED );
 }
 
@@ -271,11 +279,13 @@ void Call::handle( const simple_voip::DtmfTone & req )
     }
 
     callback_->consume( & req );
+
+    schedule_dtmf_tone();
 }
 
 void Call::next_state( state_e state )
 {
-    dummy_logi_debug( log_id_, call_id_, "switched state %s --> %s", to_string( state_ ).c_str(), to_string( state ).c_str() );
+    dummy_logi_info( log_id_, call_id_, "switched state %s --> %s", to_string( state_ ).c_str(), to_string( state ).c_str() );
 
     state_  = state;
 }
@@ -303,6 +313,7 @@ const std::string & Call::to_string( const state_e & l )
     static Map m =
     {
         { Type:: TUPLE_VAL_STR( IDLE ) },
+        { Type:: TUPLE_VAL_STR( WAITING_DIALING ) },
         { Type:: TUPLE_VAL_STR( DIALING ) },
         { Type:: TUPLE_VAL_STR( RINGING ) },
         { Type:: TUPLE_VAL_STR( CONNECTED ) },
@@ -339,24 +350,43 @@ const std::string & Call::to_string( const media_state_e & l )
     return it->second;
 }
 
-void Call::schedule_event( simple_voip::CallbackObject * ev, uint32_t exec_time )
+void Call::schedule_event( const simple_voip::CallbackObject * ev, uint32_t exec_time )
 {
+    dummy_logi_trace( log_id_, call_id_, "schedule_event: %u", exec_time );
+
     std::string error_msg;
 
     scheduler::job_id_t sched_job_id;
 
     auto b = scheduler::create_and_insert_one_time_job(
             & sched_job_id,
-            error_msg,
+            & error_msg,
             * scheduler_,
             "timer_job",
             exec_time,
-            std::bind( &Dummy::consume, this, ev ) );
+            std::bind( static_cast<void (Dummy::*)(const simple_voip::CallbackObject * )>(&Dummy::consume), parent_, ev ) );
 
     if( b == false )
     {
         dummy_logi_error( log_id_, call_id_, "cannot set timer: %s", error_msg.c_str() );
     }
+    else
+    {
+        dummy_logi_debug( log_id_, call_id_, "scheduled execution at: %u", exec_time );
+    }
+}
+
+void Call::schedule_dtmf_tone()
+{
+    auto tone_int = get_random( config_.dtmf_min, config_.dtmf_max );
+
+    auto tone = static_cast<simple_voip::DtmfTone::tone_e>( tone_int );
+
+    auto ev = simple_voip::create_dtmf_tone( call_id_, tone );
+
+    auto exec_time = calc_exec_time( config_.next_dtmf_delay_min, config_.next_dtmf_delay_max );
+
+    schedule_event( ev, exec_time );
 }
 
 uint32_t Call::calc_exec_time( uint32_t min, uint32_t max )
@@ -366,6 +396,8 @@ uint32_t Call::calc_exec_time( uint32_t min, uint32_t max )
     auto now = epoch_now();
 
     auto exec_time = now + dur;
+
+    //dummy_logi_debug( log_id_, call_id_, "now %u dur %u exec_time %u min %u max %u", now, dur, exec_time, min, max );
 
     return exec_time;
 }

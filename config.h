@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9428 $ $Date:: 2018-06-21 #$ $Author: serge $
+// $Revision: 9466 $ $Date:: 2018-06-25 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CONFIG_H
 #define SIMPLE_VOIP_DUMMY__CONFIG_H
@@ -54,6 +54,10 @@ struct Config
     unsigned ringing_duration_max;              //
     unsigned call_duration_min;                 //
     unsigned call_duration_max;                 //
+    unsigned next_dtmf_delay_min;               //
+    unsigned next_dtmf_delay_max;               //
+    unsigned dtmf_min;                          //
+    unsigned dtmf_max;                          //
 };
 
 } // namespace simple_voip_dummy

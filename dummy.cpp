@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9442 $ $Date:: 2018-06-21 #$ $Author: serge $
+// $Revision: 9465 $ $Date:: 2018-06-25 #$ $Author: serge $
 
 #include "dummy.h"                  // self
 
@@ -37,9 +37,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace simple_voip_dummy {
 
 Dummy::Dummy():
+        WorkerBase( this ),
         log_id_( 0 ),
+        log_id_call_( 0 ),
         callback_( nullptr ),
-        scheduler_( scheduler ),
+        scheduler_( nullptr ),
         last_call_id_( 0 )
 {
 }
@@ -50,6 +52,7 @@ Dummy::~Dummy()
 
 bool Dummy::init(
         unsigned int                        log_id,
+        unsigned int                        log_id_call,
         const Config                        & config,
         simple_voip::ISimpleVoipCallback    * callback,
         scheduler::IScheduler               * scheduler,
@@ -57,7 +60,9 @@ bool Dummy::init(
 {
     * error_msg   = "simple_voip_dummy";
 
-    log_id_     = log_id;
+    log_id_         = log_id;
+    log_id_call_    = log_id_call;
+    config_     = config;
     callback_   = callback;
     scheduler_  = scheduler;
 
@@ -171,7 +176,7 @@ void Dummy::handle_InitiateCallRequest( const simple_voip::ForwardObject * rreq 
     {
         last_call_id_++;
 
-        auto call = new Call( last_call_id_, log_id_, config_, this, callback_, scheduler_ );
+        auto call = new Call( last_call_id_, log_id_call_, config_, this, callback_, scheduler_ );
 
         dummy_log_info( log_id_, "new call %u %s", last_call_id_, r.party.c_str() );
 

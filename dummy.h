@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9418 $ $Date:: 2018-06-21 #$ $Author: serge $
+// $Revision: 9465 $ $Date:: 2018-06-25 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__DUMMY_H
 #define SIMPLE_VOIP_DUMMY__DUMMY_H
@@ -45,12 +45,15 @@ class Dummy:
         public WorkerBase,
         virtual public simple_voip::ISimpleVoip
 {
+    friend WorkerBase;
+
 public:
     Dummy();
     ~Dummy();
 
     bool init(
             unsigned int                        log_id,
+            unsigned int                        log_id_call,
             const Config                        & config,
             simple_voip::ISimpleVoipCallback    * callback,
             scheduler::IScheduler               * scheduler,
@@ -108,7 +111,7 @@ private:
         }
         else
         {
-            send_error_response( req.req_id );
+            send_error_response( req.req_id, "wrong call id or call ended" );
         }
     }
 
@@ -118,6 +121,7 @@ private:
 private:
 
     unsigned int                        log_id_;
+    unsigned int                        log_id_call_;
 
     Config                              config_;
 

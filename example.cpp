@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9445 $ $Date:: 2018-06-21 #$ $Author: serge $
+// $Revision: 9466 $ $Date:: 2018-06-25 #$ $Author: serge $
 
 #include <iostream>         // cout
 #include <typeinfo>
@@ -30,9 +30,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <thread>           // std::thread
 
 #include "dummy.h"              // simple_voip_dummy::Dummy
-#include "objects.h"            //
 #include "config.h"             // Config
 
+#include "simple_voip/objects.h"
 #include "utils/dummy_logger.h"     // dummy_log_set_log_level
 #include "scheduler/scheduler.h"    // Scheduler
 #include "config_reader/config_reader.h"    // config_reader::ConfigReader
@@ -70,6 +70,12 @@ void init_config( simple_voip_dummy::Config * cfg, const config_reader::ConfigRe
     GET_VALUE_CONVERTED( ringing_duration_max,                  section, true );
     GET_VALUE_CONVERTED( call_duration_min,                     section, true );
     GET_VALUE_CONVERTED( call_duration_max,                     section, true );
+
+    GET_VALUE_CONVERTED( next_dtmf_delay_min,                   section, true );
+    GET_VALUE_CONVERTED( next_dtmf_delay_max,                   section, true );
+    GET_VALUE_CONVERTED( dtmf_min,                              section, true );
+    GET_VALUE_CONVERTED( dtmf_max,                              section, true );
+
 }
 
 class Callback: virtual public simple_voip::ISimpleVoipCallback
@@ -335,7 +341,7 @@ int main()
 
     config_reader::ConfigReader cr;
 
-    std::string config_file( "example.cfg" );
+    std::string config_file( "example.ini" );
 
     if( cr.init( config_file ) == false )
     {
@@ -358,11 +364,13 @@ int main()
 
     scheduler::Scheduler sched( scheduler::Duration( std::chrono::milliseconds( 1 ) ) );
 
-    auto log_id_dummy            = dummy_logger::register_module( "SimpleVoipDummy" );
+    auto log_id_dummy       = dummy_logger::register_module( "SimpleVoipDummy" );
+    auto log_id_call        = dummy_logger::register_module( "Call" );
 
     dummy_logger::set_log_level( log_id_dummy,      log_levels_log4j::TRACE );
+    dummy_logger::set_log_level( log_id_call,       log_levels_log4j::TRACE );
 
-    bool b = dummy.init( log_id_dummy, config, & test, & sched, & error_msg );
+    bool b = dummy.init( log_id_dummy, log_id_call, config, & test, & sched, & error_msg );
     if( b == false )
     {
         std::cout << "cannot initialize voip module: " << error_msg << std::endl;
@@ -370,6 +378,7 @@ int main()
     }
 
     sched.run();
+    dummy.start();
 
     std::vector< std::thread > tg;
 

@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9382 $ $Date:: 2018-06-15 #$ $Author: serge $
+// $Revision: 9454 $ $Date:: 2018-06-25 #$ $Author: serge $
 
 #include "random.h"         // self
 
@@ -29,7 +29,7 @@ namespace simple_voip_dummy {
 
 bool get_true( uint32_t probability )
 {
-    bool res = ( rand() % 100 ) < probability;
+    bool res = ( (uint32_t) rand() % 100 ) < probability;
 
     return res;
 }
