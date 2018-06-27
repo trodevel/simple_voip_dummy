@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9466 $ $Date:: 2018-06-25 #$ $Author: serge $
+// $Revision: 9473 $ $Date:: 2018-06-26 #$ $Author: serge $
 
 #include <iostream>         // cout
 #include <typeinfo>
@@ -30,53 +30,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <thread>           // std::thread
 
 #include "dummy.h"              // simple_voip_dummy::Dummy
-#include "config.h"             // Config
+#include "init_config.h"        // simple_voip_dummy::init_config
 
 #include "simple_voip/objects.h"
 #include "utils/dummy_logger.h"     // dummy_log_set_log_level
 #include "scheduler/scheduler.h"    // Scheduler
-#include "config_reader/config_reader.h"    // config_reader::ConfigReader
-
-#define GET_VALUE( _v, _s, _toe )               cr.get_value( & cfg-> _v, _s, #_v, _toe )
-#define GET_VALUE_CONVERTED( _v, _s, _toe )     cr.get_value_converted( & cfg-> _v, _s, #_v, _toe )
-
-void init_config( simple_voip_dummy::Config * cfg, const config_reader::ConfigReader & cr )
-{
-    const std::string section( "simple_voip_dummy" );
-
-    GET_VALUE_CONVERTED( icr_ok_response_probability,       section, true );
-    GET_VALUE_CONVERTED( icr_reject_response_probability,   section, true );
-    GET_VALUE_CONVERTED( drop_ok_response_probability,      section, true );
-    GET_VALUE_CONVERTED( drop_err_not_rej_response_probability, section, true );
-
-    GET_VALUE_CONVERTED( pf_ok_response_probability,            section, true );
-    GET_VALUE_CONVERTED( pf_err_not_rej_response_probability,   section, true );
-
-    GET_VALUE_CONVERTED( pfs_ok_response_probability,           section, true );
-    GET_VALUE_CONVERTED( pfs_err_not_rej_response_probability,  section, true );
-
-    GET_VALUE_CONVERTED( rf_ok_response_probability,            section, true );
-    GET_VALUE_CONVERTED( rf_err_not_rej_response_probability,   section, true );
-
-    GET_VALUE_CONVERTED( rfs_ok_response_probability,           section, true );
-    GET_VALUE_CONVERTED( rfs_err_not_rej_response_probability,  section, true );
-
-    GET_VALUE_CONVERTED( connected_probability,                 section, true );
-    GET_VALUE_CONVERTED( waiting_dialing_duration_min,          section, true );
-    GET_VALUE_CONVERTED( waiting_dialing_duration_max,          section, true );
-    GET_VALUE_CONVERTED( dialing_duration_min,                  section, true );
-    GET_VALUE_CONVERTED( dialing_duration_max,                  section, true );
-    GET_VALUE_CONVERTED( ringing_duration_min,                  section, true );
-    GET_VALUE_CONVERTED( ringing_duration_max,                  section, true );
-    GET_VALUE_CONVERTED( call_duration_min,                     section, true );
-    GET_VALUE_CONVERTED( call_duration_max,                     section, true );
-
-    GET_VALUE_CONVERTED( next_dtmf_delay_min,                   section, true );
-    GET_VALUE_CONVERTED( next_dtmf_delay_max,                   section, true );
-    GET_VALUE_CONVERTED( dtmf_min,                              section, true );
-    GET_VALUE_CONVERTED( dtmf_max,                              section, true );
-
-}
 
 class Callback: virtual public simple_voip::ISimpleVoipCallback
 {
@@ -354,7 +312,7 @@ int main()
         std::cout << "loaded config file " + config_file << std::endl;
     }
 
-    init_config( & config, cr );
+    simple_voip_dummy::init_config( & config, cr );
 
     simple_voip_dummy::Dummy            dummy;
 
