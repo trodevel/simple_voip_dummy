@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9473 $ $Date:: 2018-06-26 #$ $Author: serge $
+// $Revision: 9523 $ $Date:: 2018-07-17 #$ $Author: serge $
 
 #include <iostream>         // cout
 #include <typeinfo>
@@ -33,6 +33,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "init_config.h"        // simple_voip_dummy::init_config
 
 #include "simple_voip/objects.h"
+#include "simple_voip/str_helper.h"
+#include "simple_voip/object_factory.h"         // simple_voip::create_initiate_call_request
 #include "utils/dummy_logger.h"     // dummy_log_set_log_level
 #include "scheduler/scheduler.h"    // Scheduler
 
@@ -49,107 +51,21 @@ public:
     // interface ISimpleVoipCallback
     void consume( const simple_voip::CallbackObject * req )
     {
-        std::cout << "got " << typeid( *req ).name() << " ";
+        std::cout << "got " << *req << std::endl;
 
         if( typeid( *req ) == typeid( simple_voip::InitiateCallResponse ) )
         {
             auto m = dynamic_cast< const simple_voip::InitiateCallResponse *>( req );
 
-            std::cout << m->call_id << std::endl;
-
             call_id_    = m->call_id;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::ErrorResponse ) )
-        {
-            auto m = dynamic_cast< const simple_voip::ErrorResponse *>( req );
-
-            std::cout << m->descr << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::RejectResponse ) )
-        {
-            auto m = dynamic_cast< const simple_voip::RejectResponse *>( req );
-
-            std::cout << m->descr << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::DropResponse ) )
-        {
-            auto m = dynamic_cast< const simple_voip::DropResponse *>( req );
-
-            std::cout << m->req_id << std::endl;
         }
         else if( typeid( *req ) == typeid( simple_voip::Failed ) )
         {
-            auto m = dynamic_cast< const simple_voip::Failed *>( req );
-
-            std::cout << m->call_id << std::endl;
-
             call_id_    = 0;
         }
         else if( typeid( *req ) == typeid( simple_voip::ConnectionLost ) )
         {
-            auto m = dynamic_cast< const simple_voip::ConnectionLost *>( req );
-
-            std::cout << m->call_id << std::endl;
-
             call_id_    = 0;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::Dialing ) )
-        {
-            auto m = dynamic_cast< const simple_voip::Dialing *>( req );
-
-            std::cout << m->call_id << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::Ringing ) )
-        {
-            auto m = dynamic_cast< const simple_voip::Ringing *>( req );
-
-            std::cout << m->call_id << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::Connected ) )
-        {
-            auto m = dynamic_cast< const simple_voip::Connected *>( req );
-
-            std::cout << m->call_id << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::CallDuration ) )
-        {
-            auto m = dynamic_cast< const simple_voip::CallDuration *>( req );
-
-            std::cout << m->call_id << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::DtmfTone ) )
-        {
-            auto m = dynamic_cast< const simple_voip::DtmfTone *>( req );
-
-            std::cout << "got " << typeid( *req ).name() << static_cast<uint16_t>( m->tone ) << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::PlayFileResponse ) )
-        {
-            auto m = dynamic_cast< const simple_voip::PlayFileResponse *>( req );
-
-            std::cout << m->req_id << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::PlayFileStopResponse ) )
-        {
-            auto m = dynamic_cast< const simple_voip::PlayFileStopResponse *>( req );
-
-            std::cout << m->req_id << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::RecordFileResponse ) )
-        {
-            auto m = dynamic_cast< const simple_voip::RecordFileResponse *>( req );
-
-            std::cout << m->req_id << std::endl;
-        }
-        else if( typeid( *req ) == typeid( simple_voip::RecordFileStopResponse ) )
-        {
-            auto m = dynamic_cast< const simple_voip::RecordFileStopResponse *>( req );
-
-            std::cout << m->req_id << std::endl;
-        }
-        else
-        {
-            std::cout << "unknown" << std::endl;
         }
 
         delete req;
@@ -203,23 +119,13 @@ private:
 
                 last_req_id_++;
 
-                auto req = new simple_voip::InitiateCallRequest;
-
-                req->req_id = last_req_id_;
-                req->party  = s;
-
-                dialer_->consume( req );
+                dialer_->consume( simple_voip::create_initiate_call_request( last_req_id_, s ) );
             }
             else if( cmd == "drop" )
             {
                 last_req_id_++;
 
-                auto req = new simple_voip::DropRequest;
-
-                req->req_id     = last_req_id_;
-                req->call_id    = call_id_;
-
-                dialer_->consume( req );
+                dialer_->consume( simple_voip::create_drop_request( last_req_id_, call_id_ ) );
             }
             else if( cmd == "play" )
             {
@@ -228,13 +134,7 @@ private:
 
                 last_req_id_++;
 
-                auto req = new simple_voip::PlayFileRequest;
-
-                req->req_id     = last_req_id_;
-                req->call_id    = call_id_;
-                req->filename   = filename;
-
-                dialer_->consume( req );
+                dialer_->consume( simple_voip::create_play_file_request( last_req_id_, call_id_, filename ) );
             }
             else if( cmd == "rec" )
             {
@@ -243,35 +143,19 @@ private:
 
                 last_req_id_++;
 
-                auto req = new simple_voip::RecordFileRequest;
-
-                req->req_id     = last_req_id_;
-                req->call_id    = call_id_;
-                req->filename   = filename;
-
-                dialer_->consume( req );
+                dialer_->consume( simple_voip::create_record_file_request( last_req_id_, call_id_, filename ) );
             }
             else if( cmd == "stop_play" )
             {
                 last_req_id_++;
 
-                auto req = new simple_voip::PlayFileStopRequest;
-
-                req->req_id     = last_req_id_;
-                req->call_id    = call_id_;
-
-                dialer_->consume( req );
+                dialer_->consume( simple_voip::create_play_file_stop_request( last_req_id_, call_id_ ) );
             }
             else if( cmd == "stop_rec" )
             {
                 last_req_id_++;
 
-                auto req = new simple_voip::RecordFileStopRequest;
-
-                req->req_id     = last_req_id_;
-                req->call_id    = call_id_;
-
-                dialer_->consume( req );
+                dialer_->consume( simple_voip::create_record_file_stop_request( last_req_id_, call_id_ ) );
             }
             else
             {

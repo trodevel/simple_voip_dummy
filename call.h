@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9467 $ $Date:: 2018-06-25 #$ $Author: serge $
+// $Revision: 9537 $ $Date:: 2018-07-17 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CALL_H
 #define SIMPLE_VOIP_DUMMY__CALL_H
@@ -90,7 +90,7 @@ private:
     void player_next_state( media_state_e state );
     void recorder_next_state( media_state_e state );
 
-    void schedule_event( const simple_voip::CallbackObject * ev, uint32_t exec_time );
+    void schedule_event( const simple_voip::CallbackObject * ev, uint32_t exec_time, const std::string & descr );
     void schedule_dtmf_tone();
 
     uint32_t calc_exec_time( uint32_t min, uint32_t max );

@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9468 $ $Date:: 2018-06-25 #$ $Author: serge $
+// $Revision: 9537 $ $Date:: 2018-07-17 #$ $Author: serge $
 
 #include "call.h"                   // self
 
@@ -77,7 +77,7 @@ void Call::handle( const simple_voip::InitiateCallRequest & req )
 
     auto exec_time = calc_exec_time( config_.waiting_dialing_duration_min, config_.waiting_dialing_duration_max );
 
-    schedule_event( ev, exec_time );
+    schedule_event( ev, exec_time, "Dialing" );
 
     next_state( state_e::WAITING_DIALING );
 }
@@ -194,7 +194,7 @@ void Call::handle( const simple_voip::Dialing & req )
 
     auto exec_time = calc_exec_time( config_.dialing_duration_min, config_.dialing_duration_max );
 
-    schedule_event( ev, exec_time );
+    schedule_event( ev, exec_time, "Ringing" );
 
     next_state( state_e::DIALING );
 }
@@ -215,7 +215,7 @@ void Call::handle( const simple_voip::Ringing & req )
 
     auto exec_time = calc_exec_time( config_.ringing_duration_min, config_.ringing_duration_max );
 
-    schedule_event( ev, exec_time );
+    schedule_event( ev, exec_time, "Connected/Failed" );
 
     next_state( state_e::RINGING );
 }
@@ -247,7 +247,7 @@ void Call::handle( const simple_voip::Connected & req )
 
     auto exec_time = calc_exec_time( config_.call_duration_min, config_.call_duration_max );
 
-    schedule_event( ev, exec_time );
+    schedule_event( ev, exec_time, "ConnectionLost" );
 
     schedule_dtmf_tone();
 
@@ -350,9 +350,9 @@ const std::string & Call::to_string( const media_state_e & l )
     return it->second;
 }
 
-void Call::schedule_event( const simple_voip::CallbackObject * ev, uint32_t exec_time )
+void Call::schedule_event( const simple_voip::CallbackObject * ev, uint32_t exec_time, const std::string & descr )
 {
-    dummy_logi_trace( log_id_, call_id_, "schedule_event: %u", exec_time );
+    dummy_logi_trace( log_id_, call_id_, "schedule_event: %u %s", exec_time, descr.c_str() );
 
     std::string error_msg;
 
@@ -386,7 +386,7 @@ void Call::schedule_dtmf_tone()
 
     auto exec_time = calc_exec_time( config_.next_dtmf_delay_min, config_.next_dtmf_delay_max );
 
-    schedule_event( ev, exec_time );
+    schedule_event( ev, exec_time, "DtmfTone" );
 }
 
 uint32_t Call::calc_exec_time( uint32_t min, uint32_t max )
