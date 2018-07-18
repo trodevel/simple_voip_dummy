@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9465 $ $Date:: 2018-06-25 #$ $Author: serge $
+// $Revision: 9563 $ $Date:: 2018-07-18 #$ $Author: serge $
 
 #include "dummy.h"                  // self
 
@@ -153,6 +153,7 @@ void Dummy::handle( const simple_voip::CallbackObject * req )
         HANDLER_MAP_ENTRY( Ringing ),
         HANDLER_MAP_ENTRY( Connected ),
         HANDLER_MAP_ENTRY( ConnectionLost ),
+        HANDLER_MAP_ENTRY( Failed ),
         HANDLER_MAP_ENTRY( DtmfTone ),
     };
 
@@ -258,6 +259,13 @@ void Dummy::handle_Connected( const simple_voip::CallbackObject * rreq )
 void Dummy::handle_ConnectionLost( const simple_voip::CallbackObject * rreq )
 {
     auto & r = dynamic_cast< const simple_voip::ConnectionLost &>( * rreq );
+
+    forward_resp_to_call( r );
+}
+
+void Dummy::handle_Failed( const simple_voip::CallbackObject * rreq )
+{
+    auto & r = dynamic_cast< const simple_voip::Failed &>( * rreq );
 
     forward_resp_to_call( r );
 }

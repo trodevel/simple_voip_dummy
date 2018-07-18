@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9465 $ $Date:: 2018-06-25 #$ $Author: serge $
+// $Revision: 9563 $ $Date:: 2018-07-18 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__DUMMY_H
 #define SIMPLE_VOIP_DUMMY__DUMMY_H
@@ -92,6 +92,7 @@ private:
     void handle_Ringing( const simple_voip::CallbackObject * req );
     void handle_Connected( const simple_voip::CallbackObject * req );
     void handle_ConnectionLost( const simple_voip::CallbackObject * req );
+    void handle_Failed( const simple_voip::CallbackObject * req );
     void handle_DtmfTone( const simple_voip::CallbackObject * req );
 
     void check_call_end( MapIdToCall::iterator it );

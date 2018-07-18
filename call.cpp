@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9537 $ $Date:: 2018-07-17 #$ $Author: serge $
+// $Revision: 9560 $ $Date:: 2018-07-18 #$ $Author: serge $
 
 #include "call.h"                   // self
 
@@ -215,7 +215,10 @@ void Call::handle( const simple_voip::Ringing & req )
 
     auto exec_time = calc_exec_time( config_.ringing_duration_min, config_.ringing_duration_max );
 
-    schedule_event( ev, exec_time, "Connected/Failed" );
+    std::string s_c( "Connected" );
+    std::string s_f( "Failed" );
+
+    schedule_event( ev, exec_time, has_to_exec ? s_c : s_f );
 
     next_state( state_e::RINGING );
 }
