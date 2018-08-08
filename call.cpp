@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9560 $ $Date:: 2018-07-18 #$ $Author: serge $
+// $Revision: 9638 $ $Date:: 2018-08-08 #$ $Author: serge $
 
 #include "call.h"                   // self
 
@@ -28,21 +28,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "simple_voip/objects.h"            // InitiateCallResponse
 #include "simple_voip/object_factory.h"     // create_error_response
 #include "utils/dummy_logger.h"             // dummy_log
-#include "scheduler/onetime_job_aux.h"      // create_and_insert_one_time_job
+#include "scheduler/timeout_job_aux.h"      // create_and_insert_timeout_job
 
 #include "random.h"                         // get_random
 #include "dummy.h"                          // Dummy
 
 namespace simple_voip_dummy {
-
-uint32_t epoch_now()
-{
-    // https://stackoverflow.com/a/40899786
-    auto st = std::time(nullptr);
-    auto secs = static_cast<std::chrono::seconds>( st ).count();
-    return static_cast<uint32_t>( secs );
-}
-
 
 Call::Call(
         uint32_t                            call_id,
@@ -75,9 +66,9 @@ void Call::handle( const simple_voip::InitiateCallRequest & req )
 
     auto ev = simple_voip::create_message_t<simple_voip::Dialing>( call_id_ );
 
-    auto exec_time = calc_exec_time( config_.waiting_dialing_duration_min, config_.waiting_dialing_duration_max );
+    auto duration = get_random( config_.waiting_dialing_duration_min, config_.waiting_dialing_duration_max );
 
-    schedule_event( ev, exec_time, "Dialing" );
+    schedule_event( ev, duration, "Dialing" );
 
     next_state( state_e::WAITING_DIALING );
 }
@@ -192,9 +183,9 @@ void Call::handle( const simple_voip::Dialing & req )
 
     auto ev = simple_voip::create_message_t<simple_voip::Ringing>( call_id_ );
 
-    auto exec_time = calc_exec_time( config_.dialing_duration_min, config_.dialing_duration_max );
+    auto duration = get_random( config_.dialing_duration_min, config_.dialing_duration_max );
 
-    schedule_event( ev, exec_time, "Ringing" );
+    schedule_event( ev, duration, "Ringing" );
 
     next_state( state_e::DIALING );
 }
@@ -213,12 +204,12 @@ void Call::handle( const simple_voip::Ringing & req )
             (simple_voip::CallbackObject *)simple_voip::create_message_t<simple_voip::Connected>( call_id_ ):
             (simple_voip::CallbackObject *)simple_voip::create_message_t<simple_voip::Failed>( call_id_ );
 
-    auto exec_time = calc_exec_time( config_.ringing_duration_min, config_.ringing_duration_max );
+    auto duration = get_random( config_.ringing_duration_min, config_.ringing_duration_max );
 
     std::string s_c( "Connected" );
     std::string s_f( "Failed" );
 
-    schedule_event( ev, exec_time, has_to_exec ? s_c : s_f );
+    schedule_event( ev, duration, has_to_exec ? s_c : s_f );
 
     next_state( state_e::RINGING );
 }
@@ -248,9 +239,9 @@ void Call::handle( const simple_voip::Connected & req )
 
     auto ev = simple_voip::create_message_t<simple_voip::ConnectionLost>( call_id_ );
 
-    auto exec_time = calc_exec_time( config_.call_duration_min, config_.call_duration_max );
+    auto duration = get_random( config_.call_duration_min, config_.call_duration_max );
 
-    schedule_event( ev, exec_time, "ConnectionLost" );
+    schedule_event( ev, duration, "ConnectionLost" );
 
     schedule_dtmf_tone();
 
@@ -353,20 +344,20 @@ const std::string & Call::to_string( const media_state_e & l )
     return it->second;
 }
 
-void Call::schedule_event( const simple_voip::CallbackObject * ev, uint32_t exec_time, const std::string & descr )
+void Call::schedule_event( const simple_voip::CallbackObject * ev, uint32_t duration, const std::string & descr )
 {
-    dummy_logi_trace( log_id_, call_id_, "schedule_event: %u %s", exec_time, descr.c_str() );
+    dummy_logi_trace( log_id_, call_id_, "schedule_event: %u %s", duration, descr.c_str() );
 
     std::string error_msg;
 
     scheduler::job_id_t sched_job_id;
 
-    auto b = scheduler::create_and_insert_one_time_job(
+    auto b = scheduler::create_and_insert_timeout_job(
             & sched_job_id,
             & error_msg,
             * scheduler_,
             "timer_job",
-            exec_time,
+            scheduler::Duration( duration ),
             std::bind( static_cast<void (Dummy::*)(const simple_voip::CallbackObject * )>(&Dummy::consume), parent_, ev ) );
 
     if( b == false )
@@ -375,7 +366,7 @@ void Call::schedule_event( const simple_voip::CallbackObject * ev, uint32_t exec
     }
     else
     {
-        dummy_logi_debug( log_id_, call_id_, "scheduled execution at: %u", exec_time );
+        dummy_logi_debug( log_id_, call_id_, "scheduled execution in: %u sec", duration );
     }
 }
 
@@ -387,22 +378,9 @@ void Call::schedule_dtmf_tone()
 
     auto ev = simple_voip::create_dtmf_tone( call_id_, tone );
 
-    auto exec_time = calc_exec_time( config_.next_dtmf_delay_min, config_.next_dtmf_delay_max );
+    auto duration = get_random( config_.next_dtmf_delay_min, config_.next_dtmf_delay_max );
 
-    schedule_event( ev, exec_time, "DtmfTone" );
-}
-
-uint32_t Call::calc_exec_time( uint32_t min, uint32_t max )
-{
-    auto dur = get_random( min, max );
-
-    auto now = epoch_now();
-
-    auto exec_time = now + dur;
-
-    //dummy_logi_debug( log_id_, call_id_, "now %u dur %u exec_time %u min %u max %u", now, dur, exec_time, min, max );
-
-    return exec_time;
+    schedule_event( ev, duration, "DtmfTone" );
 }
 
 bool Call::execute_req_or_reject( uint32_t req_id, uint32_t ok_prob, uint32_t err_not_rej_prob, const std::string & comment )
