@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9638 $ $Date:: 2018-08-08 #$ $Author: serge $
+// $Revision: 9648 $ $Date:: 2018-08-09 #$ $Author: serge $
 
 #include "call.h"                   // self
 
@@ -166,10 +166,62 @@ void Call::handle( const simple_voip::PlayFileStopRequest & req )
 
 void Call::handle( const simple_voip::RecordFileRequest & req )
 {
+    if( state_ != state_e::CONNECTED )
+    {
+        parent_->send_error_response( req.req_id, "not connected" );
+        return;
+    }
+
+    if( recorder_state_ != media_state_e::IDLE )
+    {
+        parent_->send_error_response( req.req_id, "already recording" );
+        return;
+    }
+
+    auto has_to_execute = execute_req_or_reject(
+            req.req_id,
+            config_.rf_ok_response_probability,
+            config_.rf_err_not_rej_response_probability,
+            "RecordFileRequest" );
+
+    if( has_to_execute == false )
+        return;
+
+    auto resp = simple_voip::create_record_file_response( req.req_id );
+
+    callback_->consume( resp );
+
+    recorder_next_state( media_state_e::BUSY );
 }
 
 void Call::handle( const simple_voip::RecordFileStopRequest & req )
 {
+    if( state_ != state_e::CONNECTED )
+    {
+        parent_->send_error_response( req.req_id, "not connected" );
+        return;
+    }
+
+    if( recorder_state_ != media_state_e::BUSY )
+    {
+        parent_->send_error_response( req.req_id, "already idle" );
+        return;
+    }
+
+    auto has_to_execute = execute_req_or_reject(
+            req.req_id,
+            config_.rfs_ok_response_probability,
+            config_.rfs_err_not_rej_response_probability,
+            "RecordFileStopRequest" );
+
+    if( has_to_execute == false )
+        return;
+
+    auto resp = simple_voip::create_record_file_stop_response( req.req_id );
+
+    callback_->consume( resp );
+
+    recorder_next_state( media_state_e::IDLE );
 }
 
 

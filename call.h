@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 9638 $ $Date:: 2018-08-08 #$ $Author: serge $
+// $Revision: 9648 $ $Date:: 2018-08-09 #$ $Author: serge $
 
 #ifndef SIMPLE_VOIP_DUMMY__CALL_H
 #define SIMPLE_VOIP_DUMMY__CALL_H
